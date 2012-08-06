@@ -1,7 +1,7 @@
 ################################################################################
 # WeBWorK Online Homework Delivery System
 # Copyright © 2000-2007 The WeBWorK Project, http://openwebwork.sf.net/
-# $CVSHeader: webwork2/lib/WeBWorK/ContentGenerator.pm,v 1.191.2.1.2.3 2009/06/26 00:37:00 gage Exp $
+# $CVSHeader: webwork2/lib/WeBWorK/ContentGenerator.pm,v 1.191.2.1.2.2 2008/06/25 16:13:12 gage Exp $
 # 
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of either: (a) the GNU General Public License as published by the
@@ -51,11 +51,28 @@ use Date::Format;
 use URI::Escape;
 use WeBWorK::Debug;
 use WeBWorK::PG;
-use MIME::Base64;
 use WeBWorK::Template qw(template);
-
 use mod_perl;
 use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and $ENV{MOD_PERL_API_VERSION} >= 2 );
+
+##########################################################################################################
+##########################################################################################################
+### ADD NEW MODULE USE -beya
+
+use TUTOR;   # <---  New Tutorial Module
+use LOGGER;  # <---  Temp log file printer to enable debugging thru text file output
+	
+##########################################################################################################
+####################################################################################################################################################################################################################
+##########################################################################################################
+### ADD NEW MODULE USE -beya
+
+use TUTOR;   # <---  New Tutorial Module
+use LOGGER;  # <---  Temp log file printer to enable debugging thru text file output
+	
+##########################################################################################################
+##########################################################################################################
+	
 
 BEGIN {
 	if (MP2) {
@@ -67,7 +84,7 @@ BEGIN {
 	}
 }
 
-###############################################################################
+#########################################################################################################
 
 =head1 CONSTRUCTOR
 
@@ -79,7 +96,6 @@ Creates a new instance of a content generator. Supply a WeBWorK::Request object
 $r.
 
 =cut
-
 sub new {
 	my ($invocant, $r) = @_;
 	my $class = ref($invocant) || $invocant;
@@ -97,9 +113,7 @@ sub new {
 =back
 
 =cut
-
-################################################################################
-
+#########################################################################################################
 =head1 INVOCATION
 
 =over
@@ -151,8 +165,8 @@ The method content() is called to send the page content to client.
 =back
 
 =cut
-
 sub go {
+	
 	my ($self) = @_;
 	my $r = $self->r;
 	my $ce = $r->ce;
@@ -203,7 +217,6 @@ Returns a reference to the WeBWorK::Request object associated with this
 instance.
 
 =cut
-
 sub r {
 	my ($self) = @_;
 	
@@ -215,7 +228,6 @@ sub r {
 Handler for reply_with_file(), used by go(). DO NOT CALL THIS METHOD DIRECTLY.
 
 =cut
-
 sub do_reply_with_file {
 	my ($self, $fileHash) = @_;
 	my $r = $self->r;
@@ -264,7 +276,6 @@ sub do_reply_with_file {
 Handler for reply_with_redirect(), used by go(). DO NOT CALL THIS METHOD DIRECTLY.
 
 =cut
-
 sub do_reply_with_redirect {
 	my ($self, $url) = @_;
 	my $r = $self->r;
@@ -295,8 +306,7 @@ sub do_reply_with_redirect {
 =back
 
 =cut
-
-################################################################################
+#########################################################################################################
 
 =head1 DATA MODIFIERS
 
@@ -316,7 +326,6 @@ Must be called before the HTTP header is sent. Usually called from
 pre_header_initialize().
 
 =cut
-
 sub reply_with_file {
 	my ($self, $type, $source, $name, $delete_after) = @_;
 	$delete_after ||= "";
@@ -338,7 +347,6 @@ Must be called before the HTTP header is sent. Usually called from
 pre_header_initialize().
 
 =cut
-
 sub reply_with_redirect {
 	my ($self, $url) = @_;
 	
@@ -353,9 +361,6 @@ escape handler.
 Must be called before the message() template escape is invoked.
 
 =cut
-
-
-
 sub addmessage {
 	my ($self, $message) = @_;
 	$self->{status_message} .= $message;
@@ -367,8 +372,6 @@ Adds a success message to the list of messages to be printed by the
 message() template escape handler.
 
 =cut
-
-
 sub addgoodmessage {
 	my ($self, $message) = @_;
 	$self->addmessage(CGI::div({class=>"ResultsWithoutError"}, $message));
@@ -380,8 +383,6 @@ Adds a failure message to the list of messages to be printed by the
 message() template escape handler.
 
 =cut
-
-
 sub addbadmessage {
 	my ($self, $message) = @_;
 	$self->addmessage(CGI::div({class=>"ResultsWithError"}, $message));
@@ -393,8 +394,6 @@ Prepare a string to be sent to the activity log, if it is turned on.
 This can be overriden by different modules.
                                                                                 
 =cut                                                                            
-
-
 sub prepare_activity_entry {
     my $self = shift;
 	my $r = $self->r;
@@ -407,8 +406,7 @@ sub prepare_activity_entry {
 =back
 
 =cut
-
-################################################################################
+#########################################################################################################
 
 =head1 STANDARD METHODS
 
@@ -426,7 +424,6 @@ May be defined by a subclass to perform any processing that must occur before
 the HTTP header is sent.
 
 =cut
-
 #sub pre_header_initialize {  }
 
 =item header()
@@ -437,7 +434,6 @@ Generates and sends a default HTTP header, specifying the "text/html" content
 type.
 
 =cut
-
 sub header {
 	my $self = shift;
 	my $r = $self->r;
@@ -455,7 +451,6 @@ May be defined by a subclass to perform any processing that must occur after the
 HTTP header is sent but before any content is sent.
 
 =cut
-
 #sub initialize {  }
 
 =item content()
@@ -472,7 +467,6 @@ the template to use. If not, the default template, "system", is used. The
 location of the template is looked up in the course environment.
 
 =cut
-
 sub content {
 	my ($self) = @_;
 	my $r = $self->r;
@@ -494,8 +488,7 @@ sub content {
 =back
 
 =cut
-
-# ------------------------------------------------------------------------------
+#########################################################################################################
 
 =head2 Template escape handlers
 
@@ -518,7 +511,6 @@ Not defined in this package.
 Any tags that should appear in the HEAD of the document.
 
 =cut
-
 #sub head {  }
 
 =item info()
@@ -528,7 +520,6 @@ Not defined in this package.
 Auxiliary information related to the content displayed in the C<body>.
 
 =cut
-
 #sub info {  }
 
 =item links()
@@ -538,7 +529,6 @@ Defined in this package.
 Links that should appear on every page.
 
 =cut
-
 sub links {
 	my ($self) = @_;
 	my $r = $self->r;
@@ -662,17 +652,8 @@ sub links {
 			if (defined $setID) {
 				print CGI::start_ul();
 				print CGI::start_li(); # $setID
-				# show a link if we're displaying a homework set, or a version
-				#    of a gateway assignment; to know if it's a gateway
-				#    assignment, we have to get the set record.
-				my ($globalSetID) = ( $setID =~ /(.+?)(,v\d+)?$/ );
-				my $setRecord = $db->getGlobalSet( $globalSetID );
-				if ( $setRecord->assignment_type !~ /gateway/ ) {
-					print &$makelink("${pfx}ProblemSet", text=>"$prettySetID", urlpath_args=>{%args,setID=>$setID}, systemlink_args=>\%systemlink_args);
-				} elsif ($setID =~ /,v(\d)+$/) {
-					print &$makelink("${pfx}GatewayQuiz", text=>"$prettySetID", urlpath_args=>{%args,setID=>$setID}, systemlink_args=>\%systemlink_args);
-				}
-
+				print &$makelink("${pfx}ProblemSet", text=>"$prettySetID", urlpath_args=>{%args,setID=>$setID}, systemlink_args=>\%systemlink_args);
+				# FIXME i think we only want this if the problem set is not a gateway quiz
 				if (defined $problemID) {
 					print CGI::start_ul();
 					print CGI::start_li(); # $problemID
@@ -703,8 +684,7 @@ sub links {
 				
 				print CGI::start_li(); # Homework Set Editor
 				print &$makelink("${pfx}ProblemSetList", urlpath_args=>{%args}, systemlink_args=>\%systemlink_args);
-				## only show editor link for non-versioned sets
-				if (defined $setID && $setID !~ /,v\d+$/ ) {
+				if (defined $setID) {
 					print CGI::start_ul();
 					print CGI::start_li(); # $setID
 					print &$makelink("${pfx}ProblemSetDetail", text=>"$prettySetID", urlpath_args=>{%args,setID=>$setID}, systemlink_args=>\%systemlink_args);
@@ -730,11 +710,7 @@ sub links {
 						print CGI::li(&$makelink("${pfx}Stats", text=>"$eUserID", urlpath_args=>{%args,statType=>"student",userID=>$eUserID}, systemlink_args=>\%systemlink_args));
 					}
 					if (defined $setID) {
-						# make sure we don't try to send a versioned
-						#    set id in to the stats link
-						my ( $nvSetID ) = ( $setID =~ /(.+?)(,v\d+)?$/ );
-						my ( $nvPretty ) = ( $prettySetID =~ /(.+?)(,v\d+)?$/ );
-						print CGI::li(&$makelink("${pfx}Stats", text=>"$nvPretty", urlpath_args=>{%args,statType=>"set",setID=>$nvSetID}, systemlink_args=>\%systemlink_args));
+						print CGI::li(&$makelink("${pfx}Stats", text=>"$prettySetID", urlpath_args=>{%args,statType=>"set",setID=>$setID}, systemlink_args=>\%systemlink_args));
 					}
 					print CGI::end_ul();
 				}
@@ -748,11 +724,7 @@ sub links {
 						print CGI::li(&$makelink("${pfx}StudentProgress", text=>"$eUserID", urlpath_args=>{%args,statType=>"student",userID=>$eUserID}, systemlink_args=>\%systemlink_args));
 					}
 					if (defined $setID) {
-						# make sure we don't try to send a versioned
-						#    set id in to the stats link
-						my ( $nvSetID ) = ( $setID =~ /(.+?)(,v\d+)?$/ );
-						my ( $nvPretty ) = ( $prettySetID =~ /(.+?)(,v\d+)?$/ );
-						print CGI::li(&$makelink("${pfx}StudentProgress", text=>"$nvPretty", urlpath_args=>{%args,statType=>"set",setID=>$nvSetID}, systemlink_args=>\%systemlink_args));
+						print CGI::li(&$makelink("${pfx}StudentProgress", text=>"$prettySetID", urlpath_args=>{%args,statType=>"set",setID=>$setID}, systemlink_args=>\%systemlink_args));
 					}
 					print CGI::end_ul();
 				}
@@ -811,7 +783,6 @@ Print a notification message announcing the current real user and effective
 user, a link to stop acting as the effective user, and a link to logout.
 
 =cut
-
 sub loginstatus {
 	my ($self) = @_;
 	my $r = $self->r;
@@ -829,12 +800,10 @@ sub loginstatus {
 		my $logoutURL = $self->systemLink($urlpath->newFromModule(__PACKAGE__ . "::Logout", courseID => $courseID));
 		
 		if ($eUserID eq $userID) {
-			print "Logged in as $userID. " . CGI::br() . CGI::a({href=>$logoutURL, onclick=>"if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { s = document['session'].saveSessionWorkNavigateAway();;} else { s = session.saveSessionWorkNavigateAway();;} "}, "Log Out");
-			#print "Logged in as $userID. " . CGI::br() . CGI::a({href=>$logoutURL}, "Log Out");
+			print "Logged in as $userID. " . CGI::br() . CGI::a({href=>$logoutURL}, "Log Out");
 		} else {
 			print "Logged in as $userID. " . CGI::a({href=>$logoutURL}, "Log Out") . CGI::br();
 			print "Acting as $eUserID. " . CGI::a({href=>$stopActingURL}, "Stop Acting");
-			#print "Acting as <<name deleted>>. " . CGI::a({href=>$stopActingURL}, "Stop Acting");
 		}
 	} else {
 		print "Not logged in.";
@@ -866,7 +835,6 @@ For example:
           imagesuffix=".gif" separator="  "-->
 
 =cut
-
 #sub nav {  }
 
 =item options()
@@ -877,7 +845,6 @@ View options related to the content displayed in the body or info areas. See als
 optionsMacro().
 
 =cut
-
 #sub options {  }
 
 =item path($args)
@@ -897,7 +864,6 @@ The implementation in this package takes information from the WeBWorK::URLPath
 associated with the current request.
 
 =cut
-
 sub path {
 	my ($self, $args) = @_;
 	my $r = $self->r;
@@ -925,7 +891,6 @@ Not defined in this package.
 Print links to siblings of the current object.
 
 =cut
-
 #sub siblings {  }
 
 =item timestamp()
@@ -941,7 +906,6 @@ For example,
 will give standard WeBWorK time format.  Wording and other formatting
 can be done in the template itself.
 =cut
-
 sub timestamp {
 	my ($self, $args) = @_;
 	my $formatstring = "%l:%M%P on %b %e, %Y";
@@ -960,7 +924,6 @@ The implementation in this package prints the value of the field
 $self->{status_message}, if it is present.
 
 =cut
-
 sub message {
 	my ($self) = @_;
 	
@@ -982,17 +945,42 @@ The implementation in this package takes information from the WeBWorK::URLPath
 associated with the current request.
 
 =cut
-
 sub title {
+	
 	my ($self, $args) = @_;
 	my $r = $self->r;
-	
+
 	#print "\n<!-- BEGIN " . __PACKAGE__ . "::title -->\n";
 	#print underscore2nbsp($r->urlpath->name);
 	my $name = $r->urlpath->name;
 	$name =~ s/_/ /g;
 	print $name;
 	#print "<!-- END " . __PACKAGE__ . "::title -->\n";
+	
+	######################################################################################################
+	######################################################################################################
+	### DEBUG
+	# Print existing Title
+	 doLog("ContentGeneraor.title(): '$name'\n")
+	######################################################################################################
+	######################################################################################################
+	
+	######################################################################################################
+	######################################################################################################
+	### BEYA:FIX
+	if(hasFlag(userID)){
+		$name = $name." ( Tutorial Enabled!)";
+	} 
+	######################################################################################################
+	######################################################################################################
+	
+	######################################################################################################
+	######################################################################################################
+	### DEBUG
+	# Print existing Title
+	 doLog("(new)ContentGeneraor.title(): '$name'\n")
+	######################################################################################################
+	######################################################################################################
 	
 	return "";
 }
@@ -1007,7 +995,6 @@ The implementation in this package checks for a note in the request named
 "warnings". If present, its contents are formatted and returned.
 
 =cut
-
 sub warnings {
 	my ($self) = @_;
 	my $r = $self->r;
@@ -1027,7 +1014,6 @@ the link will be to the help document for that name. Otherwise the module of the
 WeBWorK::URLPath node for the current system location will be used.
 
 =cut
-
 sub help {
 	my $self = shift;
 	my $args = shift;
@@ -1055,7 +1041,6 @@ environment. $args is a reference to a hash containing the following fields:
  name => name of URL (key in URL hash)
 
 =cut
-
 sub url {
 	my ($self, $args) = @_;
 	my $ce = $self->r->ce;
@@ -1074,8 +1059,7 @@ sub url {
 =back
 
 =cut
-
-# ------------------------------------------------------------------------------
+#########################################################################################################
 
 =head2 Conditional predicates
 
@@ -1109,10 +1093,8 @@ template:
  }
 
 =cut
-
 sub if_can {
 	my ($self, $arg) = @_;
-	
 	return $self->can($arg) ? 1 : 0;
 }
 
@@ -1132,7 +1114,6 @@ The implementation in this package uses WeBWorK::Authen::was_verified() to
 retrieve the result of the last call to WeBWorK::Authen::verify().
 
 =cut
-
 sub if_loggedin {
 	my ($self, $arg) = @_;
 	
@@ -1164,7 +1145,6 @@ redefined to handle that variance:
  }
 
 =cut
-
 sub if_message {
 	my ($self, $arg) = @_;
 	
@@ -1185,7 +1165,6 @@ The implementation in this package checks for a note in the request named
 handled.
 
 =cut
-
 sub if_warnings {
 	my ($self, $arg) = @_;
 	my $r = $self->r;
@@ -1200,8 +1179,7 @@ sub if_warnings {
 =back
 
 =cut
-
-################################################################################
+#########################################################################################################
 
 =head1 HTML MACROS
 
@@ -1236,7 +1214,6 @@ FIXME: authentication data probably shouldn't be added here any more, now that
 we have systemLink().
 
 =cut
-
 sub pathMacro {
 	my ($self, $args, @path) = @_;
 	my %args = %$args;
@@ -1255,8 +1232,7 @@ sub pathMacro {
 		my $name = shift @path;
 		my $url = shift @path;
 		if ($url and not $args{textonly}) {
-			push @result, CGI::a({-href=>"$url?$auth", -onclick=>"if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { s = document['session'].saveSessionWorkNavigateAway();;} else { s = session.saveSessionWorkNavigateAway();;}"}, $name);
-			#push @result, CGI::a({-href=>"$url?$auth"}, $name);
+			push @result, CGI::a({-href=>"$url?$auth"}, $name);
 		} else {
 			push @result, $name;
 		}
@@ -1281,7 +1257,6 @@ FIXME: authentication data probably shouldn't be added here any more, now that
 we have systemLink().
 
 =cut
-
 sub siblingsMacro {
 	my ($self, @siblings) = @_;
 	
@@ -1300,8 +1275,6 @@ sub siblingsMacro {
 	return join($sep, @result) . "\n";
 }
 
-
-
 =item navMacro($args, $tail, @links)
 
 Helper macro for the C<#nav> escape sequence: $args is a hash reference
@@ -1317,11 +1290,8 @@ to each URL, after the authentication information. A fully-formed nav line is
 returned, suitable for returning by a function implementing the C<#nav> escape.
 
 =cut
-
 sub navMacro {
-	my ($self, $args, $tail, $javascript, @links) = @_;
-#(ADW):  Include javascript tag above to allow for javascript on click of link.
-#	my ($self, $args, $tail, @links) = @_;
+	my ($self, $args, $tail, @links) = @_;
 	my $r = $self->r;
 	my $ce = $r->ce;
 	my %args = %$args;
@@ -1334,7 +1304,6 @@ sub navMacro {
 		my $name = shift @links;
 		my $url = shift @links;
 		my $img = shift @links;
-
 		my $html = 
 			($img && $args{style} eq "images")
 			? CGI::img(
@@ -1343,17 +1312,9 @@ sub navMacro {
 				alt=>"$name"})
 			: $name;
 #		unless($img && !$url) {  ## these are now "disabled" versions in grey -- DPVC
-			#(ADW):  Added alternative for available javascript tag
-			if ($javascript eq "") {
-			  push @result, $url
+			push @result, $url
 				? CGI::a({-href=>"$url?$auth$tail"}, $html)
 				: $html;
-			}
-			else {
-			  push @result, $url
-				? CGI::a({-href=>"$url?$auth$tail", -onClick=>"$javascript;"}, $html)
-				: $html;
-			}
 #		}
 	}
 
@@ -1366,7 +1327,6 @@ This escape is represented by a question mark which links to an html page in the
 helpFiles  directory.  Currently the link is made to the file $name.html
 
 =cut
-
 sub helpMacro {
     my $self = shift;
 	my $name = shift;
@@ -1401,7 +1361,6 @@ method. The simplest way to to this is:
  sub options { shift->optionsMacro }
 
 =cut
-
 sub optionsMacro {
 	my ($self, %options) = @_;
 	
@@ -1461,7 +1420,6 @@ Instructor". %params contains the request parameters accepted by the Feedback
 module and their values.
 
 =cut
-
 sub feedbackMacro {
 	my ($self, %params) = @_;
 	my $r = $self->r;
@@ -1472,16 +1430,12 @@ sub feedbackMacro {
 	return "" unless $authz->hasPermissions($userID, "submit_feedback");
 	
 	my $feedbackURL = $r->ce->{courseURLs}{feedbackURL};
-	my $feedbackFormURL = $r->ce->{courseURLs}{feedbackFormURL};
 	if (defined $feedbackURL and $feedbackURL ne "") {
 		return $self->feedbackMacro_url($feedbackURL);
-	} elsif (defined $feedbackFormURL and $feedbackFormURL ne "") {
-		return $self->feedbackMacro_form($feedbackFormURL,%params);
 	} else {
 		return $self->feedbackMacro_email(%params);
 	}
 }
-
 sub feedbackMacro_email {
 	my ($self, %params) = @_;
 	my $r = $self->r;
@@ -1498,7 +1452,6 @@ sub feedbackMacro_email {
 	$result .= $self->hidden_authen_fields . "\n";
 	
 	while (my ($key, $value) = each %params) {
-	    next if $key eq 'pg_object';    # not used in internal feedback mechanism
 		$result .= CGI::hidden($key, $value) . "\n";
 	}
 	$result .= CGI::p({-align=>"left"}, CGI::submit(-name=>"feedbackForm", -label=>$feedbackName));
@@ -1506,35 +1459,6 @@ sub feedbackMacro_email {
 	
 	return $result;
 }
-
-sub feedbackMacro_form {
-	my ($self, $feedbackFormURL, %params) = @_;
-	my $r = $self->r;
-	my $ce = $r->ce;
-	my $urlpath = $r->urlpath;
-	my $courseID = $urlpath->arg("courseID");
-	
-	# feedback form url
-	my $feedbackName = $ce->{feedback_button_name} || "Email instructor";
-	
-	my $result = CGI::start_form(-method=>"POST", -action=>$feedbackFormURL,-target=>"WW_info") . "\n";
-	$result .= $self->hidden_authen_fields . "\n";
-	
-	while (my ($key, $value) = each %params) {
-	    if ($key eq 'pg_object') {
-	        my $tmp = $value->{body_text}; 
-	        $tmp .= CGI::p(CGI::b("Note: "). CGI::i($value->{result}->{msg})) if $value->{result}->{msg} ;
-	        $result .= CGI::hidden($key, encode_base64($tmp, "") );
-	    } else {
-			$result .= CGI::hidden($key, $value) . "\n";
-		}
-	}
-	$result .= CGI::p({-align=>"left"}, CGI::submit(-name=>"feedbackForm", -label=>$feedbackName));
-	$result .= CGI::endform() . "\n";
-	
-	return $result;
-}
-
 sub feedbackMacro_url {
 	my ($self, $url) = @_;
 	my $feedbackName = $self->r->ce->{feedback_button_name} || "Email instructor";
@@ -1544,8 +1468,7 @@ sub feedbackMacro_url {
 =back
 
 =cut
-
-# ------------------------------------------------------------------------------
+#########################################################################################################
 
 =head2 Parameter management
 
@@ -1560,7 +1483,6 @@ Return hidden <INPUT> tags for each field mentioned in @fields (or all fields if
 list is empty), taking data from the current request.
 
 =cut
-
 sub hidden_fields {
 	my ($self, @fields) = @_;
 	my $r = $self->r;
@@ -1584,10 +1506,8 @@ Use hidden_fields to return hidden <INPUT> tags for request fields used in
 authentication.
 
 =cut
-
 sub hidden_authen_fields {
 	my ($self) = @_;
-	
 	return $self->hidden_fields("user", "effectiveUser", "key", "theme");
 }
 
@@ -1597,7 +1517,6 @@ Use hidden_fields to return hidden <INPUT> tags for request fields used in
 proctor authentication.
 
 =cut
-
 sub hidden_proctor_authen_fields {
 	my $self = shift;
 	if ( $self->r->param('proctor_user') ) {
@@ -1614,7 +1533,6 @@ maintain state. Currently includes authentication fields and display option
 fields.
 
 =cut
-
 sub hidden_state_fields {
 	my ($self) = @_;
 	
@@ -1631,7 +1549,6 @@ field mentioned in @fields, or all fields if list is empty. Data is taken from
 the current request.
 
 =cut
-
 sub url_args {
 	my ($self, @fields) = @_;
 	my $r = $self->r;
@@ -1655,7 +1572,6 @@ Use url_args to return a URL query string for request fields used in
 authentication.
 
 =cut
-
 sub url_authen_args {
 	my ($self) = @_;
 	
@@ -1668,7 +1584,6 @@ Use url_args to return a URL query string for request fields used to maintain
 state. Currently includes authentication fields and display option fields.
 
 =cut
-
 sub url_state_args {
 	my ($self) = @_;
 	
@@ -1678,33 +1593,31 @@ sub url_state_args {
 	#$self->url_args("displayMode", "showOldAnswers", "showCorrectAnswers", "showHints", "showSolutions");
 }
 
-# This method is not used anywhere! --sam(1-Aug-05)
-#
-#=item url_display_args()
+##########################################################
+### This method is not used anywhere! --sam(1-Aug-05)
+=item url_display_args()
 #
 #Use url_args to return a URL query string for request fields used in
 #authentication.
 #
-#=cut
-#
-#sub url_display_args {
+=cut
+sub url_display_args {
 #	my ($self) = @_;
 #	
 #	return $self->url_args("displayMode", "showOldAnswer");
-#}
+}
 
-# This method is not used anywhere! --sam(1-Aug-05)
-#
-#=item print_form_data($begin, $middle, $end, $omit)
+##########################################################
+### This method is not used anywhere! --sam(1-Aug-05)
+=item print_form_data($begin, $middle, $end, $omit)
 #
 #Return a string containing every request field not matched by the quoted reguar
 #expression $omit, placing $begin before each field name, $middle between each
 #field name and its value, and $end after each value. Values are taken from the
 #current request.
 #
-#=cut
-#
-#sub print_form_data {
+=cut
+sub print_form_data {
 #	my ($self, $begin, $middle, $end, $qr_omit) = @_;
 #	my $r=$self->r;
 #	my @form_data = $r->param;
@@ -1724,13 +1637,12 @@ sub url_state_args {
 #	}
 #	
 #	return $return_string;
-#}
+}
 
 =back
 
 =cut
-
-# ------------------------------------------------------------------------------
+#########################################################################################################
 
 =head2 Utilities
 
@@ -1772,10 +1684,8 @@ This is useful for links which must be usable on their own, such as those sent
 via email.
 
 =back
-
-=cut
-
 # FIXME: there should probably be an option for prepending "http://hostname:port"
+=cut
 sub systemLink {
 	my ($self, $urlpath, %options) = @_;
 	my $r = $self->r;
@@ -1850,7 +1760,6 @@ If string consists of only whitespace, the HTML entity C<&nbsp;> is returned.
 Otherwise $string is returned.
 
 =cut
-
 sub nbsp {
 	my ($self, $str) = @_;
 	return (defined $str && $str =~/\S/) ? $str : "&nbsp;";
@@ -1862,7 +1771,6 @@ A copy of $string is returned with each space character replaced by the
 C<&nbsp;> entity.
 
 =cut
-
 sub sp2nbsp {
 	my ($str) = @_;
 	return unless defined $str;
@@ -1876,7 +1784,6 @@ A copy of $string is returned with each underscore character replaced by the
 C<&nbsp;> entity.
 
 =cut
-
 sub underscore2nbsp {
 	my ($str) = @_;
 	return unless defined $str;
@@ -1890,7 +1797,6 @@ Used by Problem, ProblemSet, and Hardcopy to report errors encountered during
 problem rendering.
 
 =cut
-
 sub errorOutput($$$) {
 	my ($self, $error, $details) = @_;
 	my $r = $self->{r};
@@ -1952,7 +1858,6 @@ Used by warnings() in this class to report warnings caught during dispatching
 and content generation.
 
 =cut
-
 sub warningOutput($$) {
 	my ($self, $warnings) = @_;
 	my $r = $self->{r};
@@ -2003,7 +1908,6 @@ variable $siteDefaults{timezone} is used. The result, $dateTime, is an integer
 UNIX datetime (epoch) in the server's timezone.
 
 =cut
-
 sub parseDateTime {
 	my ($self, $string, $display_tz) = @_;
 	my $ce = $self->r->ce;
@@ -2020,7 +1924,6 @@ Otherwise, the timezone defined in the course environment variable
 $siteDefaults{timezone} is used.
 
 =cut
-
 sub formatDateTime {
 	my ($self, $dateTime, $display_tz) = @_;
 	my $ce = $self->r->ce;
@@ -2034,7 +1937,6 @@ Wrapper for WeBWorK::File::Scoring that no-ops if $fileName is "None" and
 prepends the path to the scoring directory.
 
 =cut
-
 sub read_scoring_file {
 	my ($self, $fileName) = @_;
 	return {} if $fileName eq "None"; # callers expect a hashref in all cases

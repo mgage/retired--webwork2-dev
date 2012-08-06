@@ -40,7 +40,6 @@ use URI::Escape;
 
 use WeBWorK::Utils::Tasks qw(fake_set fake_problem);
 
-
 ################################################################################
 # CGI param interface to this module (up-to-date as of v1.153)
 ################################################################################
@@ -190,7 +189,7 @@ sub set_showOldAnswers_default {
 	$ce->{pg}->{options}->{showOldAnswers} = 0
 		unless ($authz->hasPermissions($userName, "can_show_old_answers_by_default"));
 	# we are after the due date, so default to not showing it
-	#$ce->{pg}->{options}->{showOldAnswers} = 0 if $set->{due_date} && after($set->{due_date});
+	$ce->{pg}->{options}->{showOldAnswers} = 0 if $set->{due_date} && after($set->{due_date});
 }
 
 ################################################################################
@@ -779,15 +778,7 @@ sub nav {
 	$tail .= "&displayMode=".$self->{displayMode} if defined $self->{displayMode};
 	$tail .= "&showOldAnswers=".$self->{will}->{showOldAnswers}
 		if defined $self->{will}->{showOldAnswers};
-
-
-	#(ADW):  check to see if we should include the session javascript tag.
-        my %can             = %{ $self->{can}  };
-        #(ADW):Debugging version of javascript with alert:
-        #my $javascript_tag = $can{session} ? "s = session.saveSessionWorkNavigateAway(); alert(s);" : "";
-	my $javascript_tag = $can{session} ? "if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { s = document['session'].saveSessionWorkNavigateAway(); } else {s = session.saveSessionWorkNavigateAway();; }" : "";
-
-	return $self->navMacro($args, $tail, $javascript_tag, @links);
+	return $self->navMacro($args, $tail, @links);
 }
 
 sub title {
@@ -802,80 +793,30 @@ sub title {
 
 #(ADW):  Inserts a session onto the problem screen.
 sub session {
-	my ($self, $args) = @_;
+	my ($self) = @_;
 
 	my $r = $self->r;
 	my $urlpath = $r->urlpath;
 
-	#Remove these parameters...
-	#my $courseID = 7; #$urlpath->arg("courseID"); #$r->param("section");
-        #my $sessionPswd = "student"; # password for user in Session.  #$r->param("recitation");
-	#my $setID = $self->{set}->set_id if !($self->{invalidSet});
-	#my $problemID = $self->{problem}->problem_id if !($self->{invalidProblem});
-	#my $eUserID = $r->param("effectiveUser");
-	#my $directions = "webworkTable";
-
-	#parameters for tutorials:
-	my $wwEffectiveUserName = $r->param('effectiveUser');
-	my $wwUserName = $r->param('user');
-	my $wwCourseName = $urlpath->arg('courseID');
-	my $wwSetName = $self->{set}->set_id if !($self->{invalidSet});
-	my $wwProblemNumber = $self->{problem}->problem_id if !($self->{invalidProblem});
-	my $wwMode = "whiteboard";  # or "whiteboard"
-
-	#record practice information in the wwSession database if this is really a real user:
-	if ($wwEffectiveUserName eq $wwUserName) {
-
-	  if (($self->{submitAnswers}) || ($self->{previewAnswers}) || ($self->{checkAnswers})) {
-		#don't do anything, since the user is just continuing their work from before...
-	  }
-	  else {
-	    my @a = localtime(time);
-            my $dateTimeNow = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $a[5]+1900, $a[4]+1, $a[3], $a[2], $a[1], $a[0]);
-            `php /var/www/html/connecting/workWithWWDB/recordStartOfAttempt.php $wwCourseName $wwUserName $wwSetName $wwProblemNumber '$dateTimeNow'`;
-	  }
-          #Do we want to see a tutorial?
-	  my $incorrectAttemptsAtConcept = `php /var/www/html/connecting/workWithWWDB/incorrectAttemptsAtConcept.php $wwCourseName $wwUserName $wwSetName $wwProblemNumber`;
-
-	  if ($incorrectAttemptsAtConcept =~ m/\D/) {
-	    #In effect, we don't have a record in the table, so we can't see if we've made mistakes.
-	  }
-	  elsif (($incorrectAttemptsAtConcept == 3) || ($incorrectAttemptsAtConcept == 6))  {
-	    $wwMode = "tutorial";
-	  }
-	  else {
-	    #There is a record in the table, but the user hasn't made enough mistakes yet to see the tutorial.
-	  }
-	}
+	my $courseID = 7; #$urlpath->arg("courseID"); #$r->param("section");
+        my $sessionPswd = "student"; # password for user in Session.  #$r->param("recitation");
+	my $setID = $self->{set}->set_id if !($self->{invalidSet});
+	my $problemID = $self->{problem}->problem_id if !($self->{invalidProblem});
+	my $eUserID = $r->param("effectiveUser");
 
 	#include session-information here!
 	
 	my $displaySession_start = CGI::start_div({id=>"display-session"});
 	#790, 650 original screensize, scaled to 75%
 	#changed courseName from SessionTutorials to WeBWorK
-
-
-#width was 487.5px
-#now, width is 467.31
-my $session_width_no_px = $args->{"w"};
-my $session_height_no_px = $args->{"h"};
-
-my $session_width = $session_width_no_px . "px";
-my $session_height = $session_height_no_px . "px";
-
-#Want these to be 913.36 and 720.5766 if theme is session2.
-
+	my $directions = "webworkTable";
 	my $displaySession = <<BLAH;
-
-<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="$session_width" height="$session_height" id="session" align="middle">
+<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="592.5px" height="487.5px" id="session" align="middle">
 	<param name="allowScriptAccess" value="sameDomain" />
 	<param name="allowFullScreen" value="false" />
-	<param name="wmode" value="transparent" />
-	<param name="movie" value="http://magpie.physics.winona.edu/homework/session.swf?wwEffectiveUserName=$wwEffectiveUserName&wwUserName=$wwUserName&wwCourseName=$wwCourseName&wwSetName=$wwSetName&wwProblemNumber=$wwProblemNumber&wwMode=$wwMode" />
-        <param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />
-	<embed src="http://magpie.physics.winona.edu/homework/session.swf?wwEffectiveUserName=$wwEffectiveUserName&wwUserName=$wwUserName&wwCourseName=$wwCourseName&wwSetName=$wwSetName&wwProblemNumber=$wwProblemNumber&wwMode=$wwMode" quality="high" bgcolor="#ffffff" wmode="transparent" width="$session_width_no_px" height="$session_height_no_px" name="session" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
+	<param name="movie" value="http://magpie.physics.winona.edu/homework/session.swf?userName=$eUserID&password=$sessionPswd&courseID=$courseID&courseName=SessionTutorials&sectionName=&problemSet=$setID&problemNumber=$problemID&directions=$directions" />
+        <param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />	<embed src="http://magpie.physics.winona.edu/homework/session.swf?userName=$eUserID&password=$sessionPswd&courseID=$courseID&courseName=SessionTutorials&sectionName=&problemSet=$setID&problemNumber=$problemID&directions=$directions" quality="high" bgcolor="#ffffff" width="592.5" height="487.5" name="session" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
 	</object>
-        <div>Press '&#60Ctrl&#62' and '+' to increase size, '&#60Ctrl&#62' and '-' to decrease size.</div>
 BLAH
 
 	
@@ -993,44 +934,6 @@ sub body {
 				$pureProblem->num_incorrect($pg->{state}->{num_of_incorrect_ans});
 				if ($db->putUserProblem($pureProblem)) {
 					$scoreRecordedMessage = "Your score was recorded.";
-					#Record this information for the Session tutorial data:
-					my $wwCourseName = $urlpath->arg('courseID');
-					my $wwUserName = $r->param('user');
-					my $wwEffectiveUserName = $r->param('effectiveUser');
-					my $wwSetName = $self->{set}->set_id if !($self->{invalidSet});
-					my $wwProblemNumber = $self->{problem}->problem_id if !($self->{invalidProblem});
-					my $wwScore = $pg->{result}->{score} < 1 ? 0 : 1;
-					my $wwSubmittedAnswer = decodeAnswers($answerString);
-
-
-
-                        		my $wwAnswerString = ""; my $wwScores = "";
-                        		my %wwAnswerHash = %{ $pg->{answers} };
-                        # FIXME  this is the line 552 error.  make sure original student ans is defined.
-                        # The fact that it is not defined is probably due to an error in some answer evaluator.
-                        # But I think it is useful to suppress this error message in the log.
-                        		foreach (sortByName(undef, keys %wwAnswerHash)) {
-                        		        my $orig_ans = $wwAnswerHash{$_}->{original_student_ans};
-                        		        my $student_ans = defined $orig_ans ? $orig_ans : '';
-                        		        $wwAnswerString  .= $student_ans."\t";
-                        		        $wwScores .= $wwAnswerHash{$_}->{score} >= 1 ? "1" : "0";
-                        		}
-                        		$wwAnswerString = '' unless defined($answerString); # insure string is defined.
-
-
-					if ($wwUserName eq $wwEffectiveUserName) {
-					  #Record this user's attempt at the answer for this problem
-
-					  my @a = localtime(time);
-                                          my $dateTimeNow = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $a[5]+1900, $a[4]+1, $a[3], $a[2], $a[1], $a[0]);
-                                          `php /var/www/html/connecting/workWithWWDB/recordEndOfAttempt.php $wwCourseName $wwUserName $wwSetName $wwProblemNumber $wwScore '$wwAnswerString' '$dateTimeNow'`;
-                                          `php /var/www/html/connecting/workWithWWDB/recordStartOfAttempt.php $wwCourseName $wwUserName $wwSetName $wwProblemNumber '$dateTimeNow'`;
- 
-
-					  #`php /var/www/html/connecting/workWithWWDB/recordEndOfAttempt.php $wwCourseName $wwUserName $wwSetName $wwProblemNumber $wwScore '$wwAnswerString'`; 
-					  #`php /var/www/html/connecting/workWithWWDB/recordStartOfAttempt.php $wwCourseName $wwUserName $wwSetName $wwProblemNumber`;
-					#$scoreRecordedMessage = " . $pg->{result}->{score} . "php recordEndOfAttempt.php $wwCourseName $wwUserName $wwSetName $wwProblemNumber $wwScore '$wwAnswerString'";
-					}
 				} else {
 					$scoreRecordedMessage = "Your score was not recorded because there was a failure in storing the problem record to the database.";
 				}
@@ -1139,37 +1042,7 @@ sub body {
 	
 	# main form
 	print "\n";
-        my $setID = WeBWorK::ContentGenerator::underscore2nbsp($self->r->urlpath->arg("setID"));
-        #ADW
-        if (( $setID =~ m/quiz/) && ($user eq $effectiveUser)) {
-          print<<'REDIRECTSCRIPT';
-<script type="text/javascript">
-
-if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)){ //test for MSIE x.x;
-}
-else {
- alert("Please complete the quizzes using Internet Explorer.  Other browsers interfere with saving your work on the whiteboard.");
-}
-
-if (/Tablet PC 1.7/.test(navigator.userAgent)) { //test for MSIE x.x;
-  //  ok.  you are using a tablet pc.
-  //document.write("You are using a tablet PC");
-}
-else {
-  alert("All work must be shown on the whiteboard, and this requires a tablet PC.");
-  alert("You must use a tablet PC and Internet Explorer to complete the quizzes.  Tablet PC's can be checked out from the Information Gallery in the WSU Library.");
-  alert("You'll now be redirected to the Library's hours.  Please ask the Information Gallery for a tablet PC to complete this week's quiz.");
-  setTimeout("window.location=\'http://www.winona.edu/library/about/hours.html\'",1000);
-}
-
-</script>
-REDIRECTSCRIPT
-
-          print CGI::start_form(-method=>"POST", -action=> $r->uri,-name=>"problemMainForm", onSubmit=>" submitAction()");
-        }
-        else {
-	  print CGI::start_form(-method=>"POST", -action=> $r->uri,-name=>"problemMainForm", onSubmit=>"if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { document['session'].saveSessionWorkOnSubmission(); submitAction() } else { session.saveSessionWorkOnSubmission(); submitAction() }");
-        }
+	print CGI::start_form(-method=>"POST", -action=> $r->uri,-name=>"problemMainForm", onSubmit=>"submitAction()");
 	print $self->hidden_authen_fields;
 	print "\n";
 	print CGI::start_div({class=>"problem"});
@@ -1210,25 +1083,8 @@ REDIRECTSCRIPT
 	if ($can{showCorrectAnswers} or $can{showHints} or $can{showSolutions}) {
 		print CGI::br();
 	}
-
-	#make sure the Preview Answers button records the student's work and asks them to show their work before it submits.
-        #Moved to above.
-        #my $setID = WeBWorK::ContentGenerator::underscore2nbsp($self->r->urlpath->arg("setID"));
-	if ($can{session} && $setID =~ m/quiz/ && $can{getSubmitButton} && ($user eq $effectiveUser)) {
-          my $submissions = $problem->num_correct + $problem->num_incorrect;
-          my $amountNeededToWrite = 3000;
-          $amountNeededToWrite = $submissions == 1 ? 1500 : $amountNeededToWrite;
-          $amountNeededToWrite = $submissions == 2 ? 500 : $amountNeededToWrite;
-          my $fixMessage = $submissions > 0 ? "You might try highlighting your mistake with the digital pen and explaining how you fixed it." : "";
-          
-          #(ADW):This code messeed up counter for the student's work, if they pressed "Preview Answers"
-          #print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>"function sendToJavascript(value) { alert('we got ' + value); if (value <= 15) {alert('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); return false; } return true; } Aret = session.getAmountWritten(); allowClick = true; if (Aret <= " . $amountNeededToWrite . ") { confirm('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); allowClick = false; } if (false) { session.saveSessionWorkOnSubmission(); } return allowClick;");
-          
-          print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>"if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { amtWritten = document['session'].getAmountWritten(); } else { amtWritten = session.getAmountWritten(); } allowClick = false; if (amtWritten >= " . $amountNeededToWrite . ") {allowClick = true; } else { confirm('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); } if (allowClick) { if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { sss = document['session'].saveSessionWorkOnPreview(); } else { sss = session.saveSessionWorkOnPreview();} } return allowClick;");
-        }
-        else {
-	  print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers");
-        }
+		
+	print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers");
 	if ($can{checkAnswers}) {
 		print CGI::submit(-name=>"checkAnswers", -label=>"Check Answers");
 	}
@@ -1239,29 +1095,7 @@ REDIRECTSCRIPT
 			print CGI::submit(-name=>"submitAnswers", -label=>"Submit Answers for $effectiveUser");
 		} else {
 			#print CGI::submit(-name=>"submitAnswers", -label=>"Submit Answers", -onclick=>"alert('submit button clicked')");
-			##(ADW):  This is a quick, but dirty, way to make sure the user
-			##	  has actually written some work down on the session board
-			##        before they submit a problem.
-			##        This capability only applies to inclass quizzes using
-			##        using the homework (not gateway quiz) module, and
-			##        all the quizzes will have the word 'quiz' in the set name.
-			##
-			##        If not (using session and title has quiz in it), then
-			##        don't prevent the submit button from working if work hasn't been shown.
-			my $setID = WeBWorK::ContentGenerator::underscore2nbsp($self->r->urlpath->arg("setID"));
-			if ($can{session} && $setID =~ m/quiz/) {
-			  my $submissions = $problem->num_correct + $problem->num_incorrect;
-			  my $amountNeededToWrite = 5000;
-			  $amountNeededToWrite = $submissions == 1 ? 2000 : $amountNeededToWrite;
-			  $amountNeededToWrite = $submissions == 2 ? 500 : $amountNeededToWrite;
-			  my $fixMessage = $submissions > 0 ? "You might try highlighting your mistake with the digital pen and explaining how you fixed it." : "";
-                          #(ADW):Debugging version with alerts:
-			  #print CGI::submit(-name=>"submitAnswers", -label=>"Submit Answers", -onclick=>"alert('" . $amountNeededToWrite . " is amountNeededToWrite'); amtWritten = session.getAmountWritten(); alert(amtWritten + ' is amountWritten'); allowClick = false; if (amtWritten >= " . $amountNeededToWrite . ") {allowClick = true; } else { alert('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); } if (allowClick) { sss = session.saveSessionWorkOnSubmission(); alert(sss); } return allowClick;");
-			  print CGI::submit(-name=>"submitAnswers", -label=>"Submit Answers", -onclick=>"if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { amtWritten = document['session'].getAmountWritten(); } else { amtWritten = session.getAmountWritten();} allowClick = false; if (amtWritten >= " . $amountNeededToWrite . ") {allowClick = true; } else { confirm('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); } if (allowClick) { if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { sss = document['session'].saveSessionWorkOnSubmission(); } else { sss = session.saveSessionWorkOnSubmission(); } } return allowClick;");
-			}
-			else {
-			  print CGI::submit(-name=>"submitAnswers", -label=>"Submit Answers", -onclick=>"");
-			}
+			print CGI::submit(-name=>"submitAnswers", -label=>"Submit Answers", -onclick=>"");
 			# FIXME  for unknown reasons the -onclick label seems to have to be there in order to allow the forms onsubmit to trigger
 			# WFT???
 		}

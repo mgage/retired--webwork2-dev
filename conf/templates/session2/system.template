@@ -1,0 +1,452 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!--
+################################################################################
+# WeBWorK Online Homework Delivery System
+# Copyright © 2000-2007 The WeBWorK Project, http://openwebwork.sf.net/
+# $CVSHeader: webwork2/conf/templates/math/system.template,v 1.6.2.1.2.2 2008/06/26 13:22:29 gage Exp $
+# 
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of either: (a) the GNU General Public License as published by the
+# Free Software Foundation; either version 2, or (at your option) any later
+# version, or (b) the "Artistic License" which comes with this package.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See either the GNU General Public License or the
+# Artistic License for more details.
+################################################################################
+-->
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="<!--#url type="webwork" name="htdocs"-->/css/session2.css"/>
+<title><!--#path style="text" text=" : " textonly="1"--></title>
+<!--#head-->
+
+<!-- jQuery & jQueryUI + theme -->
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/ui-lightness/jquery-ui.css" type="text/css" rel="stylesheet" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js" type="text/javascript"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
+
+<!-- keyboard widget css & script -->
+<!-- <link href="css/keyboard.css" type="text/css" rel="stylesheet" /> -->
+<script src="<!--#url type="webwork" name="htdocs"-->/js/jquery.keyboard.js" type="text/javascript"></script> 
+
+<script>
+
+$(document).ready(function(e) {
+
+  //move the whiteboard down below any feedback on correctness or errors from problem submissions:
+  $('#display-session').css('top', $('#upperProblem').children('.problemHeader').height());
+
+  //move the "page generated" and "WeBWorK" copyright below the whiteboard:
+  $('#footer').css('position', 'absolute');
+  $('#footer').css('top', $('#display-session').height() + $('#display-session').offset().top);
+
+  //move the whiteboard 3 pixels to the left:
+  $('#display-session').css('left', -6);
+
+  //set the default value here, if we like.
+  $('#lowerProblem').css('visibility', 'hidden');  
+
+  //show problem if 'problem' is clicked.
+  $('#SessionProblemToggleProblem').click(function(event){
+    event.preventDefault();
+    var offset = $('#SessionProblemToggle').offset();
+    var repx = event.pageX;
+    repx = offset.left;
+    var repy = event.pageY;
+    var vis = 0;
+
+      $('#lowerProblem').css('visibility', 'hidden');
+      $('#display-session').fadeTo('slow', 0);
+      //$('#display-session').css('visibility', 'visible');
+      //the session has to be hidden in order to allow the submit button to work.
+      //work on a better fix later.
+      $('#display-session').css('visibility', 'hidden');
+      //$('#lowerProblem').fadeTo('slow', 0);
+      $('#sessionLeftBody').css('visibility', 'visible');
+      $('#sessionLeftBody').fadeTo('slow', 1 - vis);
+      $('#upperProblem').fadeTo('slow', 1);
+      $('#upperProblem').css('visibility', 'visible');
+      //$('#upperProblem').css('background-color', 'red');
+      //$('.leftBody > *').css('visibility', 'visible');
+      //$('#display-session').css('visibility', 'hidden');
+
+    $('#slider').replaceWith('<div id=\'slider\' style=\'position:absolute;left:' + (repx - offset.left) + 'px;width:3px;height:20px;background-color:#FF0000;\'></div>');
+  });
+
+  $('#SessionProblemToggleWhiteboard').click(function(event){
+    event.preventDefault();
+    var offset = $('#SessionProblemToggle').offset();
+    var repx = event.pageX;
+    repx = offset.left + $('#SessionProblemToggle').width();
+    var repy = event.pageY;
+    var vis = 1;
+
+
+      $('#upperProblem').css('visibility', 'hidden');
+      $('#display-session').css('visibility', 'visible');
+      $('#lowerProblem').css('visibility', 'visible');
+      $('#display-session').fadeTo('slow', vis);
+      $('#lowerProblem').fadeTo('slow', 0.4 * vis);
+      $('#sessionLeftBody').css('visibility', 'visible');
+      $('#sessionLeftBody').fadeTo('slow', vis);
+//      $('.leftBody > *').css('visibility', 'hidden');
+//      $('#display-session').css('visibility', 'visible');
+
+    $('#slider').replaceWith('<div id=\'slider\' style=\'position:absolute;left:' + (repx - offset.left) + 'px;width:3px;height:20px;background-color:#FF0000;\'></div>');
+  });
+
+
+  //allow the user to adjust transparency
+  $('#SessionProblemToggle').click(function(event){
+    event.preventDefault();
+    var offset = $(this).offset();
+    var repx = event.pageX;
+    var repy = event.pageY;
+    var vis = (repx - offset.left)/100;
+    if (vis > 0.85) { vis = 1; }
+    if (vis < 0.15) { vis = 0; }
+    if (vis > 0.85) {
+      $('#upperProblem').css('visibility', 'hidden');
+      $('#display-session').css('visibility', 'visible');
+      $('#lowerProblem').css('visibility', 'visible');
+      $('#display-session').fadeTo('slow', vis);
+      $('#lowerProblem').fadeTo('slow', 0.4 * vis);
+      $('#sessionLeftBody').css('visibility', 'visible');
+      $('#sessionLeftBody').fadeTo('slow', vis);
+//      $('.leftBody > *').css('visibility', 'hidden');
+//      $('#display-session').css('visibility', 'visible');
+    }
+    else if (vis > 0.5) {
+      $('#upperProblem').css('visibility', 'hidden');
+      $('#lowerProblem').css('visibility', 'visible');
+      $('#display-session').css('visibility', 'visible');
+      $('#display-session').fadeTo('slow', vis);
+      $('#lowerProblem').fadeTo('slow', 0.25 + (1 - vis));
+      $('#sessionLeftBody').css('visibility', 'visible');
+      $('#sessionLeftBody').fadeTo('slow', vis);
+      //$('.leftBody > *').css('visibility', 'visible');
+      //$('.leftBody > *').fadeTo('slow', vis);
+      //$('#display-session').fadeTo('slow', 1);
+      //$('#display-session').css('visibility', 'visible');
+    }
+    else if (vis > 0.15) {
+      $('#upperProblem').css('visibility', 'hidden');
+      $('#lowerProblem').css('visibility', 'visible');
+      $('#display-session').css('visibility', 'visible');
+      $('#display-session').fadeTo('slow', vis);
+      $('#lowerProblem').fadeTo('slow', 0.25 + (1 - vis));
+      $('#sessionLeftBody').css('visibility', 'visible');
+      $('#sessionLeftBody').fadeTo('slow', vis);
+    }
+    else {
+      $('#lowerProblem').css('visibility', 'hidden');
+      $('#display-session').fadeTo('slow', 0);
+      //$('#display-session').css('visibility', 'visible');
+      //the session has to be hidden in order to allow the submit button to work.
+      //work on a better fix later.
+      $('#display-session').css('visibility', 'hidden');
+      //$('#lowerProblem').fadeTo('slow', 0);
+      $('#sessionLeftBody').css('visibility', 'visible');
+      $('#sessionLeftBody').fadeTo('slow', 1 - vis);
+      $('#upperProblem').fadeTo('slow', 1);
+      $('#upperProblem').css('visibility', 'visible');
+      //$('#upperProblem').css('background-color', 'red');
+      //$('.leftBody > *').css('visibility', 'visible');
+      //$('#display-session').css('visibility', 'hidden');
+    }
+
+    //push problem down
+//    $('.leftBody > *').fadeTo('slow', 1 - vis);
+//    $('#display-session').fadeTo('slow', vis);
+    $('#slider').replaceWith('<div id=\'slider\' style=\'position:absolute;left:' + (repx - offset.left) + 'px;width:3px;height:20px;background-color:#FF0000;\'></div>');
+  });
+
+  $(':input').attr('placeholder', "Enter Answer...");
+
+  $.extend( $.keyboard.keyaction, {
+    sqrt : function(base){
+          base.insertText(' sqrt( )');
+	  base.$preview.caret(base.$preview.val().length - 2, base.$preview.val().length - 2);
+    },
+    sin : function(base){
+          base.insertText(' sin( )');
+    },
+    cos : function(base){
+	  base.insertText(' cos( )');
+    },
+    tan : function(base){
+	  base.insertText(' tan( )');
+    },
+    asin : function(base){
+          base.insertText(' asin( )');
+          base.$preview.caret(base.$preview.val().length - 2, base.$preview.val().length - 2);
+    },
+    acos : function(base){
+	  base.insertText(' acos( )');
+	  base.$preview.caret(base.$preview.val().length - 2, base.$preview.val().length - 2);
+    },
+    pi : function(base) {
+	  base.insertText(' pi ');
+    }
+  });
+
+
+  $(':input').keyboard({
+    // *** choose layout ***
+    layout       : 'custom',   //'qwerty',
+    //customLayout : { default: ['{cancel}'] },
+    display : {
+     'pi'	: '\u03c0',
+     'sqrt'	: '\u221a',
+     'acos'	: 'cos\u207b\u00b9'
+    }, 
+    customLayout : { 
+      'default': ['{acos} {sqrt} {pi} e ^ + - . * ', '1 2 3 a b c d e f', '4 5 6 g h i j k l', '7 8 9 m n o p q r', '{a} 0 {c} s t u v w x']
+    },
+    position     : {
+      of : null, // optional - null (attach to input/textarea) or a jQuery object (attach elsewhere)
+      my : 'left top',      //center top
+      at : 'left bottom',
+      at2: 'center bottom' // used when "usePreview" is false (centers the keyboard at the bottom of the input/textarea)
+    },
+
+    // preview added above keyboard if true, original input/textarea used if false
+    usePreview   : true,
+
+    // if true, keyboard will remain open even if the input loses focus.
+    stayOpen     : false,
+
+    // *** change keyboard language & look ***
+    display : {
+      'pi'     : '\u03c0',
+      'a'      : '\u2714:Accept',      // check mark - same action as accept
+      'accept' : 'Accept:Accept',
+      'alt'    : 'AltGr:Alternate Graphemes',
+      'b'      : '\u2190:Backspace',   // Left arrow (same as &larr;)
+      'bksp'   : 'Bksp:Backspace',
+      'c'      : '\u2716:Cancel',      // big X, close - same action as cancel
+      'cancel' : 'Cancel:Cancel',
+      'clear'  : 'C:Clear',            // clear num pad
+      'combo'  : '\u00f6:Toggle Combo Keys',
+      'dec'    : '.:Decimal',          // decimal point for num pad (optional) - if used, only one decimal point is allowed
+      'e'      : '\u21b5:Enter',       // down, then left arrow - enter symbol
+      'enter'  : 'Enter:Enter',
+      's'      : '\u21e7:Shift',       // thick hollow up arrow
+      'shift'  : 'Shift:Shift',
+      'sign'   : '\u00b1:Change Sign', // +/- sign for num pad
+      'space'  : 'Space:Space',
+//      't'      : '\u21e5:Tab',         // right arrow to bar (used since this virtual keyboard works with one directional tabs)
+//      'tab'    : '\u21e5 Tab:Tab'      // \u21b9 is the true tab symbol (left & right arrows)
+    },
+
+    // Message added to the key title while hovering, if the mousewheel plugin exists
+    wheelMessage : 'Use mousewheel to see other keys',
+
+    // Class added to the Accept and cancel buttons (originally 'ui-state-highlight')
+    actionClass  : 'ui-state-active',
+
+    // *** Useability ***
+    // Auto-accept content when clicking outside the keyboard (popup will close)
+    autoAccept   : true,
+
+    // Prevents direct input in the preview window when true
+    lockInput    : false,
+
+    // Prevent keys not in the displayed keyboard from being typed in
+    restrictInput: false,
+
+    // Prevent pasting content into the area
+    preventPaste : false,
+
+    // Set the max number of characters allowed in the input, setting it to false disables this option
+    maxLength    : false,
+
+    // Event (namespaced) on the input to reveal the keyboard. To disable it, just set it to ''.
+    openOn       : 'focus',
+
+    // When the character is added to the input
+    keyBinding   : 'mousedown',
+
+    // combos (emulate dead keys : http://en.wikipedia.org/wiki/Keyboard_layout#US-International)
+    // if user inputs `a the script converts it to à, ^o becomes ô, etc.
+    useCombos    : true,
+
+    // *** Methods ***
+    // Callbacks - add code inside any of these callback functions as desired
+    initialized : function(e, keyboard, el) {},
+    accepted    : function(e, keyboard, el) {},
+    canceled    : function(e, keyboard, el) {},
+    hidden      : function(e, keyboard, el) {},
+    visible     : function(e, keyboard, el) {},
+    beforeClose : function(e, keyboard, el, accepted) {}
+
+  });
+});
+
+function submitAction() { alert('pause to allow saving'); }
+
+</script>
+
+<!-- keyboard optional extensions
+<script src="js/jquery.mousewheel.js" type="text/javascript"></script>
+<script src="js/jquery.keyboard.extension-typing.js" type="text/javascript"></script>
+<script src="js/jquery.keyboard.extension-autocomplete.js" type="text/javascript"></script>
+-->
+
+</head>
+<body bgcolor="white" onload="if (typeof(initializeAction) == 'function') {initializeAction()}">
+
+<div id="masthead">
+	<div id="loginstatus">
+		<!--#loginstatus-->
+	</div>
+	<div id="logo">
+		<img src="<!--#url type="webwork" name="htdocs"-->/images/webwork_rectangle.png" alt="WeBWorK" height="51" width="267" />
+	</div>
+</div>
+<hr class="for-broken-browsers"/>
+<!--#
+#(ADW)
+#If displaying the session software,
+#then the left-most navigition panels are removed
+#and the entire big-wrapper, content, and breadcrumbs
+#are moved to the left.
+#-->
+<!--#if can="session"-->
+<!--#
+#This puts the breadcrumbs (course, set, problem number along the top)
+#and moves the session whiteboard lower on the screen, more inline with
+#the start of the math problem.
+#-->
+<div>
+	<div id="left-breadcrumbs">
+		<!--#path style="text" text=" &#x2192; "-->
+	</div>
+	<!--#  Include the title in the top line, too: -->
+	<!--#if can="title"-->
+		<span style="font-size:larger; color:#00F; float:left; width:100%;  "><!--#title--></span>
+	<!--#endif-->
+</div>
+<div id="left-big-wrapper">
+	<div id="left-content">
+<!--#else-->
+<div id="big-wrapper">
+	<div id="breadcrumbs">
+		<!--#path style="text" text=" &#x2192; "-->
+	</div>
+	<div id="content" >
+          <!--#if can="title"-->
+	    <span style="font-size:larger; color:#00F; float:left; width:100%;  "><!--#title--></span>
+	  <!--#endif-->
+<!--#endif-->
+			<!--#if can="message"-->
+				<span class="Message" style="position:absolute;top:-.9em; float:right; right:0;">
+					<!--#message-->
+				</span>
+			<!--#endif-->
+
+		    <hr style="clear:both"/>
+       		<!--#if can="info"-->
+			  <!--  styles could be different for different pages so they are not set here -->
+				<!--#info-->
+		    <!--#endif-->
+			
+		<!--#if can="nav"-->
+		<div class="Nav" style="position:absolute;top:-0.9em;left:40%;" >
+			<!--#nav style="images" imageprefix="/webwork2_files/images/nav" imagesuffix=".gif" separator="  "-->
+                <div style='position:absolute;left:280px;top:0.0em'><span id="SessionProblemToggleProblem" style='position:absolute;left:0px;width:60px;'>Problem</span>
+                  <span id="SessionProblemToggle" style='position:absolute;left:70px;width:100px;height:20px;background-color:#0000FF;'>
+                  <div id="slider" style='position:absolute;width:3px;height:20px;left:72px;background-color:#FF0000'></div>
+                  </span><span id="SessionProblemToggleWhiteboard" style='position:absolute;left:180px;width:50px;'>Whiteboard</span>
+                </div>
+		</div>
+		<!--#endif-->
+
+	    <!--#if can="body"-->
+				<!--#if warnings="1"-->
+				  <div class="Body" style="background-color:#ffcccc">
+				  <p style="font-size:larger">
+				  Warning -- there may be something wrong with this question. Please inform your instructor
+				  including the warning messages below.
+				  </p>
+				<!--#else-->
+				<div id="lowerProblem" class="leftBody" style='width:343px;'><!--#body--></div>
+					<!--
+					#(ADW)
+					#If showing session, we move the entire
+					#two blocks to the left since
+					#the left navigation screen is not
+					#displayed
+					#-->
+					<!--#if can="session"-->
+					<div id="sessionLeftBody" class="leftBody" style="position:absolute;top:20px;left:0px;background-color:#ffffff">
+					<!--#session w="913.636" h="720.5766"-->
+					<!--#else-->
+				  		<div class="Body" style="background-color:#ffffff">
+					<!--#endif-->
+				<!--#endif-->
+
+				<div id="upperProblem" class="leftBody" style='width:343px;'><!--#body--></div>
+				</div>
+			<!--#endif-->
+		
+		<!--#if warnings="1"-->
+		
+		<hr/>
+		<div class="Warnings">
+			<!--#warnings-->
+		</div>
+		<!--#endif-->
+		
+		<!--#if can="message"-->
+			<div class="Message">
+				<!--#message-->
+			</div>
+		<!--#endif-->
+		
+	
+	<hr class="for-broken-browsers"/>
+	<div id="footer">
+		<p id="last-modified">Page generated at <!--#timestamp--></p>
+		<div id="copyright">
+			WeBWorK &#169; 2000-2007 <a href="http://openwebwork.sf.net/">The WeBWorK Project</a>
+		</div>
+	</div>
+	<!--
+	#(ADW)
+	#If using session, 
+	#do not print out the left-most navigation screens
+	#-->
+	<!--#if can="session"-->
+	<!--#else-->
+	<div id="site-navigation">
+		<!--#if can="links"-->
+		<div class="info-box" id="fisheye">
+			<h2>Main Menu</h2>
+			<!--#links-->
+		</div>
+		<!--#endif-->
+		<!--#if can="siblings"-->
+			<!--#siblings-->
+		<!--#endif-->
+		<!--#if can="options"-->
+		<div class="info-box" id="fisheye">
+			<h2>Display Options</h2>
+			<!--#options-->
+		</div>
+		<!--#endif-->
+	</div>
+	<!--#endif-->
+</div><!--content-->
+</div> <!-- big-wrapper -->
+
+</body>
+</html>
