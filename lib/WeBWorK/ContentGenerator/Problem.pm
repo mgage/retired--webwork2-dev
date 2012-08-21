@@ -1326,8 +1326,6 @@ sub output_submit_buttons{
 	my $user = $r->param('user');
 	my $effectiveUser = $r->param('effectiveUser');
 
-	print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"previewAnswers_id", -input_attr=>{-name=>"previewAnswers", -value=>$r->maketext("Preview Answers")});
-	
 	
 	#make sure the Preview Answers button records the student's work and asks them to show their work before it submits.
         #Moved to above.
@@ -1345,7 +1343,8 @@ sub output_submit_buttons{
      
           #(ADW):This code messeed up counter for the student's work, if they pressed "Preview Answers"
           #print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>"function sendToJavascript(value) { alert('we got ' + value); if (value <= 15) {alert('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); return false; } return true; } Aret = session.getAmountWritten(); allowClick = true; if (Aret <= " . $amountNeededToWrite . ") { confirm('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); allowClick = false; } if (false) { session.saveSessionWorkOnSubmission(); } return allowClick;");
-        my $sessionAction = <<END_SCRIPT;
+          my $sessionAction = <<END_SCRIPT;
+          
     		if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { 
     			amtWritten = document['session'].getAmountWritten(); 
     		} else { 
@@ -1364,16 +1363,23 @@ sub output_submit_buttons{
     			 } 
     		} 
     		return allowClick;
+    	   
 END_SCRIPT
 
-          # print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>$sessionAction);
-          print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"previewAnswers_id",-onclick=>$sessionAction -input_attr=>{-name=>"previewAnswers", -value=>$r->maketext("Preview Answers")});
+          # print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>"$sessionAction");
+          print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"previewAnswers_id",
+          	-onclick=>"",   # $sessionAction, 
+          	-input_attr=>{
+          		-name=>"previewAnswers", -value=>$r->maketext("Preview Answers2")
+          	},
+          );
 
-        }
-        else {
-	  	  print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"previewAnswers_id", -input_attr=>{-name=>"previewAnswers", -value=>$r->maketext("Preview Answers")});
+    } else {
+	  	  print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"previewAnswers_id", 
+	  	  -input_attr=>{-name=>"previewAnswers", -value=>$r->maketext("Preview Answers")}
+	  	  );
 
-        }
+    }
 	
 	if ($can{checkAnswers}) {
 		print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"checkAnswers_id", -input_attr=>{-name=>"checkAnswers", -value=>$r->maketext("Check Answers")});
