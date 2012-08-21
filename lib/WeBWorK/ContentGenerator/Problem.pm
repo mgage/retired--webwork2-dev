@@ -1320,7 +1320,8 @@ sub output_submit_buttons{
 	
 	#make sure the Preview Answers button records the student's work and asks them to show their work before it submits.
         #Moved to above.
-        #my $setID = WeBWorK::ContentGenerator::underscore2nbsp($self->r->urlpath->arg("setID"));
+    my $setID = WeBWorK::ContentGenerator::underscore2nbsp($self->r->urlpath->arg("setID"));
+    my $problem = $self->{problem};
 	if ($can{session} && $setID =~ m/quiz/ && $can{getSubmitButton} && ($user eq $effectiveUser)) {
           my $submissions = $problem->num_correct + $problem->num_incorrect;
           my $amountNeededToWrite = 3000;
@@ -1356,7 +1357,6 @@ sub output_submit_buttons{
 			##
 			##        If not (using session and title has quiz in it), then
 			##        don't prevent the submit button from working if work hasn't been shown.
-			my $setID = WeBWorK::ContentGenerator::underscore2nbsp($self->r->urlpath->arg("setID"));
 			if ($can{session} && $setID =~ m/quiz/) {
 			  my $submissions = $problem->num_correct + $problem->num_incorrect;
 			  my $amountNeededToWrite = 5000;
