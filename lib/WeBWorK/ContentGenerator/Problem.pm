@@ -1333,20 +1333,46 @@ sub output_submit_buttons{
         #Moved to above.
     my $setID = WeBWorK::ContentGenerator::underscore2nbsp($self->r->urlpath->arg("setID"));
     my $problem = $self->{problem};
+    ##(ADW)
+
 	if ($can{session} && $setID =~ m/quiz/ && $can{getSubmitButton} && ($user eq $effectiveUser)) {
           my $submissions = $problem->num_correct + $problem->num_incorrect;
           my $amountNeededToWrite = 3000;
           $amountNeededToWrite = $submissions == 1 ? 1500 : $amountNeededToWrite;
           $amountNeededToWrite = $submissions == 2 ? 500 : $amountNeededToWrite;
           my $fixMessage = $submissions > 0 ? "You might try highlighting your mistake with the digital pen and explaining how you fixed it." : "";
-          
+
+     
           #(ADW):This code messeed up counter for the student's work, if they pressed "Preview Answers"
           #print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>"function sendToJavascript(value) { alert('we got ' + value); if (value <= 15) {alert('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); return false; } return true; } Aret = session.getAmountWritten(); allowClick = true; if (Aret <= " . $amountNeededToWrite . ") { confirm('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); allowClick = false; } if (false) { session.saveSessionWorkOnSubmission(); } return allowClick;");
-          
-          print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>"if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { amtWritten = document['session'].getAmountWritten(); } else { amtWritten = session.getAmountWritten(); } allowClick = false; if (amtWritten >= " . $amountNeededToWrite . ") {allowClick = true; } else { confirm('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); } if (allowClick) { if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { sss = document['session'].saveSessionWorkOnPreview(); } else { sss = session.saveSessionWorkOnPreview();} } return allowClick;");
+        my $sessionAction = <<END_SCRIPT;
+    		if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { 
+    			amtWritten = document['session'].getAmountWritten(); 
+    		} else { 
+    			amtWritten = session.getAmountWritten(); 
+    		} 
+    		allowClick = false; 
+    		if (amtWritten >= " . $amountNeededToWrite . ") {
+    			allowClick = true; 
+    		} else { 
+    			confirm('You must show your work before submitting your answer in WeBWorK.  " . $fixMessage . "'); 
+    		} 
+    		if (allowClick) {
+    			 if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
+    			 	 sss = document['session'].saveSessionWorkOnPreview(); 
+    			 } else { sss = session.saveSessionWorkOnPreview();
+    			 } 
+    		} 
+    		return allowClick;
+END_SCRIPT
+
+          # print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers", -onclick=>$sessionAction);
+          print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"previewAnswers_id",-onclick=>$sessionAction -input_attr=>{-name=>"previewAnswers", -value=>$r->maketext("Preview Answers")});
+
         }
         else {
-	  print CGI::submit(-name=>"previewAnswers", -label=>"Preview Answers");
+	  	  print WeBWorK::CGI_labeled_input(-type=>"submit", -id=>"previewAnswers_id", -input_attr=>{-name=>"previewAnswers", -value=>$r->maketext("Preview Answers")});
+
         }
 	
 	if ($can{checkAnswers}) {
