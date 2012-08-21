@@ -893,7 +893,8 @@ sub loginstatus {
 		my $logoutURL = $self->systemLink($urlpath->newFromModule(__PACKAGE__ . "::Logout", $r, courseID => $courseID));
 		
 		if ($eUserID eq $userID) {
-			print $r->maketext("Logged in as [_1]. ", $userID) . CGI::br() . CGI::a({href=>$logoutURL}, $r->maketext("Log Out"));
+			print "Logged in as $userID. " . CGI::br() . CGI::a({href=>$logoutURL, onclick=>"if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) { s = document['session'].saveSessionWorkNavigateAway();;} else { s = session.saveSessionWorkNavigateAway();;} "}, "Log Out");
+			#print "Logged in as $userID. " . CGI::br() . CGI::a({href=>$logoutURL}, "Log Out");
 		} else {
 			print $r->maketext("Logged in as [_1]. ", $userID) . CGI::a({href=>$logoutURL}, $r->maketext("Log Out")) . CGI::br();
 			print $r->maketext("Acting as [_1]. ", $eUserID) . CGI::a({href=>$stopActingURL}, $r->maketext("Stop Acting"));
@@ -1416,7 +1417,9 @@ returned, suitable for returning by a function implementing the C<#nav> escape.
 =cut
 
 sub navMacro {
-	my ($self, $args, $tail, @links) = @_;
+	my ($self, $args, $tail, $javascript, @links) = @_;
+#(ADW):  Include javascript tag above to allow for javascript on click of link.
+#	my ($self, $args, $tail, @links) = @_;
 	my $r = $self->r;
 	my $ce = $r->ce;
 	my %args = %$args;
@@ -1428,18 +1431,27 @@ sub navMacro {
 	while (@links) {
 		my $name = shift @links;
 		my $url = shift @links;
-		my $direction = shift @links;
-		my $html = ($direction && $args{style} eq "buttons") ? $direction : $name;
-			# ($img && $args{style} eq "images")
-			# ? CGI::img(
-				# {src=>($prefix."/".$img.$args{imagesuffix}),
-				# border=>"",
-				# alt=>"$name"})
-			# : $name."lol";
+		my $img = shift @links;
+
+		my $html = 
+			($img && $args{style} eq "images")
+			? CGI::img(
+				{src=>($prefix."/".$img.$args{imagesuffix}),
+				border=>"",
+				alt=>"$name"})
+			: $name;
 #		unless($img && !$url) {  ## these are now "disabled" versions in grey -- DPVC
-			push @result, $url
-				? CGI::a({-href=>"$url?$auth$tail", -class=>"nav_button"}, $html)
-				: CGI::span({-class=>"gray_button"}, $html);
+			#(ADW):  Added alternative for available javascript tag
+			if ($javascript eq "") {
+			  push @result, $url
+				? CGI::a({-href=>"$url?$auth$tail"}, $html)
+				: $html;
+			}
+			else {
+			  push @result, $url
+				? CGI::a({-href=>"$url?$auth$tail", -onClick=>"$javascript;"}, $html)
+				: $html;
+			}
 #		}
 	}
 
