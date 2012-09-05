@@ -1951,15 +1951,6 @@ sub body {
 	# if needed, get user problem records for all problems in one go
 	my (%UserProblems, %MergedProblems);
 	if ($forOneUser) {
-	    my @userKeypartsRef = map { [$editForUser[0], $setID, $_] } @problemIDList;
-	    # DBFIXME shouldn't need to get key list here
-	    @UserProblems{@problemIDList} = $db->getUserProblems(@userKeypartsRef);
-	    if ( ! $editingSetVersion ) {
-		@MergedProblems{@problemIDList} = $db->getMergedProblems(@userKeypartsRef);
-	    } else {
-		my @userversionKeypartsRef = map { [$editForUser[0], $setID, $editingSetVersion, $_] } @problemIDList;
-		@MergedProblems{@problemIDList} = $db->getMergedProblemVersions(@userversionKeypartsRef);
-	    }
 	}
 	
 	if (scalar @problemIDList) {
@@ -2082,7 +2073,7 @@ sub body {
 			    }
 			    if ($gradeable) {
 				
-				my $gradeProblemPage = $urlpath->new(type => 'instructor_set_grader', args => { courseID => $courseID, setID => $fullSetID, problemID => $problemID });
+				my $gradeProblemPage = $urlpath->new(type => 'instructor_problem_grader', args => { courseID => $courseID, setID => $fullSetID, problemID => $problemID });
 				$gradingLink = CGI::Tr({}, CGI::td({}, CGI::a({href => $self->systemLink($gradeProblemPage)}, $needs_grading ? "Needs Grading" : "Regrade")));
 			}
 			
